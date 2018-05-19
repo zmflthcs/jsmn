@@ -36,21 +36,50 @@ char* readJSONFILE(){
 		return str;
 	}
 
-void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount)
+void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex)
 {
   int i;
   int j=1;
+
   for ( i = 0; i < tokcount; i++)
   {
     if(t[i+1].size>0&&t[i+1].type==3){
-      printf("[Name %d]%.*s\n", j++,t[i+1].end-t[i+1].start,
-        jsonstr + t[i+1].start);
+//      printf("[Name %d]%.*s\n", j,t[i+1].end-t[i+1].start,
+  //      jsonstr + t[i+1].start);
+        nameTokIndex[j++]=i+1;
       }
+  }
+  nameTokIndex[0] = j-1; //put size of array in 0
+}
+
+void printNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex)
+{
+  int sizeOfArray = nameTokIndex[0];
+  int i;
+  for ( i = 0; i < sizeOfArray; i++)
+  {
+        printf("[Name %d]%.*s\n", i+1,t[nameTokIndex[i+1]].end-t[nameTokIndex[i+1]].start,
+        jsonstr + t[nameTokIndex[i+1]].start);
+
   }
 }
 
+void selectNameList(char * jsonstr, jsmntok_t * t, int *nameTokIndex)
+{
+  int i;
+  while(1)
+  {
+      printf("Select name's no (exit:0) >> ");
+      scanf("%d",&i);
+      getchar();
+      if(i==0) break;
 
+      printf("[Name %d]%.*s\n%.*s\n", i,t[nameTokIndex[i]].end-t[nameTokIndex[i]].start,
+      jsonstr + t[nameTokIndex[i]].start,t[nameTokIndex[i]+1].end-t[nameTokIndex[i]+1].start,
+      jsonstr + t[nameTokIndex[i]+1].start);
+  }
 
+}
 char * JSON_STRING;
 /*
 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
@@ -71,6 +100,7 @@ int main() {
 	int r;
 	jsmn_parser p;
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
+  int nameIndex[100];
 
 	JSON_STRING = readJSONFILE();
 
@@ -125,8 +155,10 @@ int main() {
 
 	}
   */
- jsonNameList(JSON_STRING, t, r);
-
+ jsonNameList(JSON_STRING, t, r,nameIndex);
+printNameList(JSON_STRING,t,nameIndex);
+  printf("\n====================\n");
+  selectNameList(JSON_STRING,t,nameIndex);
 
 	return EXIT_SUCCESS;
 }
