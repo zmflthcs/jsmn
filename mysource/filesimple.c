@@ -36,6 +36,21 @@ char* readJSONFILE(){
 		return str;
 	}
 
+void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount)
+{
+  int i;
+  int j=1;
+  for ( i = 0; i < tokcount; i++)
+  {
+    if(t[i+1].size>0&&t[i+1].type==3){
+      printf("[Name %d]%.*s\n", j++,t[i+1].end-t[i+1].start,
+        jsonstr + t[i+1].start);
+      }
+  }
+}
+
+
+
 char * JSON_STRING;
 /*
 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
@@ -58,7 +73,7 @@ int main() {
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
 
 	JSON_STRING = readJSONFILE();
-	printf("%s",JSON_STRING);
+
 	jsmn_init(&p);
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
 	if (r < 0) {
@@ -73,19 +88,20 @@ int main() {
 	}
 
 	/* Loop over all keys of the root object */
+  /*
 	for (i = 1; i < r; i++) {
 		if (jsoneq(JSON_STRING, &t[i], "name") == 0) {
-			/* We may use strndup() to fetch string value */
+			// We may use strndup() to fetch string value
 			printf("- Name: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STRING, &t[i], "keywords") == 0) {
-			/* We may additionally check if the value is either "true" or "false" */
+		    //We may additionally check if the value is either "true" or "false"
 			printf("- Keywords %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STRING, &t[i], "description") == 0) {
-			/* We may want to do strtol() here to get numeric value */
+			// We may want to do strtol() here to get numeric value
 			printf("- Uid: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
@@ -93,7 +109,7 @@ int main() {
 			int j;
 			printf("- Examples:\n");
 			if (t[i+1].type != JSMN_ARRAY) {
-				continue; /* We expect groups to be an array of strings */
+				continue; // We expect groups to be an array of strings
 			}
 			for (j = 0; j < t[i+1].size; j++) {
 				jsmntok_t *g = &t[i+j+2];
@@ -101,11 +117,16 @@ int main() {
 			}
 			i += t[i+1].size + 1;
 		}
-    /*else {
-			printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
-					JSON_STRING + t[i].start);
-		}
-    */
+    //else {
+		//	printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
+		//			JSON_STRING + t[i].start);
+		//}
+
+
 	}
+  */
+ jsonNameList(JSON_STRING, t, r);
+
+
 	return EXIT_SUCCESS;
 }
