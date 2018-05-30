@@ -25,8 +25,13 @@ test_strict_links: test/tests.c
 
 jsmn_test.o: jsmn_test.c libjsmn.a
 
-simple_example: example/simple.o libjsmn.a
+#simple_example: example/simple.o libjsmn.a
+#	$(CC) $(LDFLAGS) $^ -o $@
+
+simple_example: mysource/filesimple.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
+
+
 
 my_example: example/myjson.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
