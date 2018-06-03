@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "../jsmn.h"
 #include "./productlist.h"
 int countRamenObject;
@@ -39,32 +40,45 @@ char* readJSONFILE(){
 
 int jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo** nameTokenInfo)
 {
-  int i;
-  int j=1;
-  int max=0;
-  int countObject=0;
-  int count=0;
+    int i;
+    int j=1;
+    int countObject=0;
+    int count=0;
 
-  for ( i = 1; i <= tokcount; i++)
-  {
-      if(t[i].size>0&&t[i].type==JSMN_OBJECT)
-      {
-      countObject++;
-      j=  i;
-        while(t[j].end>t[++i].start)
+    for ( i = 1; i <= tokcount; i++)
+    {
+        if(t[i].size>0&&t[i].type==JSMN_OBJECT)
         {
-          if(t[i].size>0&&t[i].type==JSMN_STRING)
+        countObject++;
+        j=  i;
+          while(t[j].end>t[++i].start)
           {
-                (*nameTokenInfo)[count].tokindex = i;
-                (*nameTokenInfo)[count++].objectindex= countObject;
-                (*nameTokenInfo) = (NameTokenInfo*)realloc(*nameTokenInfo,sizeof(NameTokenInfo)*(count+2));
+            if(t[i].size>0&&t[i].type==JSMN_STRING)
+            {
+                  (*nameTokenInfo)[count].tokindex = i;
+                  (*nameTokenInfo)[count++].objectindex= countObject;
+                  (*nameTokenInfo) = (NameTokenInfo*)realloc(*nameTokenInfo,sizeof(NameTokenInfo)*(count+2));
 
+            }
           }
+          i--;
         }
-        i--;
-      }
     }
-  return count;
+    return count;
+}
+
+void printSavedInfo(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo * nameTokenInfo, int count)
+{
+  int i=0;
+  int j=0;
+  char nameOfJson[50];
+  int objectNumber;
+  for(i=0;i<count;i++)
+  {
+      sprintf(nameOfJson,"%.*s", t[nameTokenInfo[i].tokindex].end-t[nameTokenInfo[i].tokindex].start,jsonstr + t[nameTokenInfo[i].tokindex].start);
+      printf("Object number: %d , name: %s\n",nameTokenInfo[i].objectindex, nameOfJson);
+  }
+
 }
 
 void getTokenIndex(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo * nameTokenInfo, int count)
@@ -93,19 +107,75 @@ void getTokenIndex(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo * na
 
 }
 
-void printSavedInfo(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo * nameTokenInfo, int count)
+
+void printTable(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo * nameTokenInfo, int count)
 {
+
+  int price;
+  int countProduct;
+  char STRING[30];
+  char nameOfJson[50];
+  int current=1;
   int i=0;
   int j=0;
-  char nameOfJson[50];
-  int objectNumber;
+  int priceIndex;
+  int nameIndex;
+  int companyIndex;
+  int countIndex;
+  int charLen;
   for(i=0;i<count;i++)
   {
-      sprintf(nameOfJson,"%.*s", t[nameTokenInfo[i].tokindex].end-t[nameTokenInfo[i].tokindex].start,jsonstr + t[nameTokenInfo[i].tokindex].start);
-      printf("Object number: %d , name: %s\n",nameTokenInfo[i].objectindex, nameOfJson);
+    if(nameTokenInfo[i].objectindex!=current || i==count-1)
+    {
+      printf("%-8d",current);
+      printf("%-15.*s ", t[ nameIndex].end-t[nameIndex].start,jsonstr + t[nameIndex].start);
+      charLen=t[ nameIndex].end-t[nameIndex].start;
+      charLen/=3;
+      for(j=0;j<charLen;j++) printf(" ");
+
+      printf("%-17.*s", t[companyIndex].end-t[companyIndex].start,jsonstr + t[companyIndex].start);
+      charLen= t[companyIndex].end-t[companyIndex].start;
+      charLen/=3;
+      for(j=0;j<charLen;j++) printf(" ");
+
+      printf("%-8.*s", t[priceIndex].end-t[priceIndex].start,jsonstr + t[priceIndex].start);
+      sprintf(STRING,"%.*s",t[priceIndex].end-t[priceIndex].start,jsonstr + t[priceIndex].start);
+      price = atoi(STRING);
+
+      printf("%-6.*s", t[countIndex].end-t[countIndex].start,jsonstr + t[countIndex].start);
+      sprintf(STRING,"%.*s",t[countIndex].end-t[countIndex].start,jsonstr + t[countIndex].start);
+      countProduct = atoi(STRING);
+
+
+      printf("%5d",price*countProduct);
+      printf("\n");
+      current+=1;
+    }
+
+    sprintf(nameOfJson,"%.*s", t[nameTokenInfo[i].tokindex].end-t[nameTokenInfo[i].tokindex].start,jsonstr + t[nameTokenInfo[i].tokindex].start);
+    if(strcmp(nameOfJson,"count")==0)
+    {
+      countIndex=nameTokenInfo[i].tokindex+1;
+    }
+    if(strcmp(nameOfJson,"price")==0)
+    {
+      priceIndex=nameTokenInfo[i].tokindex+1;
+    }
+    if(strcmp(nameOfJson,"name")==0)
+    {
+      nameIndex=nameTokenInfo[i].tokindex+1;
+    }
+    if(strcmp(nameOfJson,"company")==0)
+    {
+      companyIndex=nameTokenInfo[i].tokindex+1;
+    }
+
+
   }
 
 }
+
+
 
 
 
@@ -149,16 +219,16 @@ int main() {
 
 
 
+  tokenInfoLen=jsonNameList(JSON_STRING, t, r, &tokenInfo);
 
- tokenInfoLen=jsonNameList(JSON_STRING, t, r, &tokenInfo);
+  //printSavedInfo(JSON_STRING, t, r, tokenInfo,tokenInfoLen);
+  //getTokenIndex(JSON_STRING, t, r, tokenInfo,tokenInfoLen);
 
-// for(i=0;i<tokenInfoLen;i++)
-// {
-//    printf("[Name %d]%.*s\n",i,t[tokenInfo[i].tokindex ].end-t[tokenInfo[i].tokindex].start,JSON_STRING + t[tokenInfo[i].tokindex ].start);
-// }
-printSavedInfo(JSON_STRING, t, r, tokenInfo,tokenInfoLen);
-getTokenIndex(JSON_STRING, t, r, tokenInfo,tokenInfoLen);
 
+  printf("*******************************************************************\n");
+  printf("번호\t제 품 명\t제 조 사\t가 격\t개 수\t총 가 격\n");
+  printf("*******************************************************************\n");
+  printTable(JSON_STRING, t, r, tokenInfo,tokenInfoLen);
 
 	return EXIT_SUCCESS;
 }

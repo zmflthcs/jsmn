@@ -12,6 +12,16 @@
       "name": "비빔면",
       "price": 596,
       "count": 5
+    },
+    { "company": "오뚜기",
+      "name": "진라면",
+      "price": 550,
+      "count": 5
+    },
+    { "company": "삼양",
+      "name": "불닭볶음면",
+      "price": 1245,
+      "count": 4
     }
   ]
 }
