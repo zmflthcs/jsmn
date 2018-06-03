@@ -8,6 +8,9 @@ libjsmn.a: jsmn.o
 
 %.o: %.c jsmn.h
 	$(CC) -c $(CFLAGS) $< -o $@
+%.o: %.c productlist.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c
@@ -29,6 +32,9 @@ jsmn_test.o: jsmn_test.c libjsmn.a
 #	$(CC) $(LDFLAGS) $^ -o $@
 
 simple_example: mysource/filesimple.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@
+
+list_example: mysource/productlist.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 
